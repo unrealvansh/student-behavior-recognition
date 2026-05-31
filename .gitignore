@@ -216,3 +216,25 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Models (large files)
+*.pt
+*.pth
+*.onnx
+
+# Data (photos/videos are huge)
+data/
+*.mp4
+*.avi
+*.jpg
+*.jpeg
+*.png
+
+# Environment
+venv/
+__pycache__/
+*.pyc
+.env
+
+# IDE
+.vscode/
+.idea/
