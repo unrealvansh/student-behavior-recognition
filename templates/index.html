@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Behaviour Recognition Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <h2>Behave X</h2>
+
+        <ul>
+            <li class="active"><i class="fas fa-home"></i> Dashboard</li>
+            <li><i class="fas fa-video"></i> Live Monitoring</li>
+            <li><i class="fas fa-chart-line"></i> Analytics</li>
+            <li><i class="fas fa-users"></i> Students</li>
+            <li><i class="fas fa-bell"></i> Alerts</li>
+            <li><i class="fas fa-cog"></i> Settings</li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main">
+
+        <!-- Header -->
+        <header>
+            <div>
+                <h1>Student Behaviour Recognition</h1>
+                <p>AI Powered Classroom Monitoring</p>
+            </div>
+
+            <div class="profile">
+                <i class="fas fa-bell"></i>
+                <img src="" alt="">
+            </div>
+        </header>
+
+        <!-- Stats -->
+        <section class="cards">
+
+            <div class="card">
+                <i class="fas fa-user-check green"></i>
+                <h2>18</h2>
+                <p>Attentive</p>
+            </div>
+
+            <div class="card">
+                <i class="fas fa-mobile-screen orange"></i>
+                <h2>3</h2>
+                <p>Using Phone</p>
+            </div>
+
+            <div class="card">
+                <i class="fas fa-bed red"></i>
+                <h2>2</h2>
+                <p>Sleeping</p>
+            </div>
+
+            <div class="card">
+                <i class="fas fa-hand-paper blue"></i>
+                <h2>5</h2>
+                <p>Hand Raised</p>
+            </div>
+
+        </section>
+
+        <!-- Middle -->
+        <section class="middle">
+
+            <div class="camera">
+                <h3>Live Classroom Feed</h3>
+
+                <div class="camera-box">
+                    Camera Preview
+                </div>
+
+            </div>
+
+            <div class="summary">
+
+                <h3>Today's Summary</h3>
+
+                <div class="summary-item">
+                    <span>Total Students</span>
+                    <strong>28</strong>
+                </div>
+
+                <div class="summary-item">
+                    <span>Detections</span>
+                    <strong>154</strong>
+                </div>
+
+                <div class="summary-item">
+                    <span>Alerts</span>
+                    <strong>6</strong>
+                </div>
+
+                <div class="summary-item">
+                    <span>AI Status</span>
+                    <strong class="green-text">Running</strong>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Recent Detections -->
+        <section class="table">
+
+            <h3>Recent Detections</h3>
+
+            <table>
+
+                <tr>
+                    <th>Time</th>
+                    <th>Student</th>
+                    <th>Behaviour</th>
+                </tr>
+
+                <tr>
+                    <td>10:24 AM</td>
+                    <td>Student 05</td>
+                    <td class="red-text">Sleeping</td>
+                </tr>
+
+                <tr>
+                    <td>10:25 AM</td>
+                    <td>Student 12</td>
+                    <td class="orange-text">Using Phone</td>
+                </tr>
+
+                <tr>
+                    <td>10:26 AM</td>
+                    <td>Student 18</td>
+                    <td class="blue-text">Hand Raised</td>
+                </tr>
+
+                <tr>
+                    <td>10:27 AM</td>
+                    <td>Student 07</td>
+                    <td class="green-text">Attentive</td>
+                </tr>
+
+            </table>
+
+        </section>
+
+    </main>
+
+</div>
+
+</body>
+</html>
