@@ -1,7 +1,7 @@
 from ultralytics import YOLO
 
 class StudentTracker:
-    def __init__(self, model_path="yolov8n.pt"):
+    def __init__(self, model_path="models/yolo_detector.pt"):
         self.model = YOLO(model_path)
     
     def track(self, frame):
