@@ -1,7 +1,8 @@
+import cv2
 from src.detector import PersonDetector
 from src.tracker import StudentTracker
 from src.classifier import BehaviorClassifier
-import cv2
+
 class BehaviorRecognitionPipeline:
     def __init__(self):
         self.detector = PersonDetector()
