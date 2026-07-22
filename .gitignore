@@ -263,3 +263,7 @@ train_yolo.py
 
 # Old model weights in models/ (will be downloaded fresh)
 models/*.pt
+
+# OS metadata
+.DS_Store
+*.DS_Store
