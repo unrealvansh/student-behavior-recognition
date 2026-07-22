@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BehaveX — Students</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=3">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+
+    {% include 'partials/sidebar.html' %}
+
+    <main class="main">
+
+        <header>
+            <div>
+                <h1>Students</h1>
+                <p>Tracked student profiles &bull; Behaviour history &bull; Engagement scores</p>
+            </div>
+            <div class="profile">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="student-search" placeholder="Search students..." class="search-input">
+                </div>
+            </div>
+        </header>
+
+        <!-- ── Quick Stats ─────────────────────────────────────────────── -->
+        <section class="cards" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="card card-blue">
+                <div class="card-icon"><i class="fas fa-user-graduate blue"></i></div>
+                <h2>42</h2>
+                <p>Students Tracked Today</p>
+                <span class="card-tag tag-blue">Active</span>
+            </div>
+            <div class="card card-green">
+                <div class="card-icon"><i class="fas fa-trophy green"></i></div>
+                <h2>78%</h2>
+                <p>Average Engagement</p>
+                <span class="card-tag tag-green">Good</span>
+            </div>
+            <div class="card card-red">
+                <div class="card-icon"><i class="fas fa-exclamation-triangle red"></i></div>
+                <h2>5</h2>
+                <p>Students Needing Attention</p>
+                <span class="card-tag tag-red">Alert</span>
+            </div>
+        </section>
+
+        <!-- ── Student Grid ────────────────────────────────────────────── -->
+        <section class="panel" style="margin-top: 24px;">
+            <h3><i class="fas fa-users"></i> All Tracked Students</h3>
+            <div class="student-grid">
+
+                <div class="student-card">
+                    <div class="student-avatar"><i class="fas fa-user"></i></div>
+                    <div class="student-info">
+                        <h4>Student #01</h4>
+                        <span class="card-tag tag-green">Engaged</span>
+                    </div>
+                    <div class="student-stats">
+                        <div class="mini-stat">
+                            <span class="mini-label">Engagement</span>
+                            <div class="progress-bar"><div class="progress-fill progress-green" style="width:92%"></div></div>
+                            <span class="mini-value green-text">92%</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-label">Alerts</span>
+                            <span class="mini-value">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="student-card">
+                    <div class="student-avatar"><i class="fas fa-user"></i></div>
+                    <div class="student-info">
+                        <h4>Student #02</h4>
+                        <span class="card-tag tag-green">Reading</span>
+                    </div>
+                    <div class="student-stats">
+                        <div class="mini-stat">
+                            <span class="mini-label">Engagement</span>
+                            <div class="progress-bar"><div class="progress-fill progress-green" style="width:88%"></div></div>
+                            <span class="mini-value green-text">88%</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-label">Alerts</span>
+                            <span class="mini-value">1</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="student-card">
+                    <div class="student-avatar"><i class="fas fa-user"></i></div>
+                    <div class="student-info">
+                        <h4>Student #03</h4>
+                        <span class="card-tag tag-yellow">Mobile</span>
+                    </div>
+                    <div class="student-stats">
+                        <div class="mini-stat">
+                            <span class="mini-label">Engagement</span>
+                            <div class="progress-bar"><div class="progress-fill progress-yellow" style="width:45%"></div></div>
+                            <span class="mini-value yellow-text">45%</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-label">Alerts</span>
+                            <span class="mini-value red-text">4</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="student-card">
+                    <div class="student-avatar"><i class="fas fa-user"></i></div>
+                    <div class="student-info">
+                        <h4>Student #04</h4>
+                        <span class="card-tag tag-blue">Hand Raised</span>
+                    </div>
+                    <div class="student-stats">
+                        <div class="mini-stat">
+                            <span class="mini-label">Engagement</span>
+                            <div class="progress-bar"><div class="progress-fill progress-blue" style="width:95%"></div></div>
+                            <span class="mini-value blue-text">95%</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-label">Alerts</span>
+                            <span class="mini-value">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="student-card">
+                    <div class="student-avatar"><i class="fas fa-user"></i></div>
+                    <div class="student-info">
+                        <h4>Student #05</h4>
+                        <span class="card-tag tag-red">Sleeping</span>
+                    </div>
+                    <div class="student-stats">
+                        <div class="mini-stat">
+                            <span class="mini-label">Engagement</span>
+                            <div class="progress-bar"><div class="progress-fill progress-red" style="width:18%"></div></div>
+                            <span class="mini-value red-text">18%</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-label">Alerts</span>
+                            <span class="mini-value red-text">7</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="student-card">
+                    <div class="student-avatar"><i class="fas fa-user"></i></div>
+                    <div class="student-info">
+                        <h4>Student #06</h4>
+                        <span class="card-tag tag-gray">Sitting</span>
+                    </div>
+                    <div class="student-stats">
+                        <div class="mini-stat">
+                            <span class="mini-label">Engagement</span>
+                            <div class="progress-bar"><div class="progress-fill progress-gray" style="width:65%"></div></div>
+                            <span class="mini-value gray-text">65%</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-label">Alerts</span>
+                            <span class="mini-value">2</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="student-card">
+                    <div class="student-avatar"><i class="fas fa-user"></i></div>
+                    <div class="student-info">
+                        <h4>Student #07</h4>
+                        <span class="card-tag tag-green">Reading</span>
+                    </div>
+                    <div class="student-stats">
+                        <div class="mini-stat">
+                            <span class="mini-label">Engagement</span>
+                            <div class="progress-bar"><div class="progress-fill progress-green" style="width:90%"></div></div>
+                            <span class="mini-value green-text">90%</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-label">Alerts</span>
+                            <span class="mini-value">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="student-card">
+                    <div class="student-avatar"><i class="fas fa-user"></i></div>
+                    <div class="student-info">
+                        <h4>Student #08</h4>
+                        <span class="card-tag tag-yellow">Mobile</span>
+                    </div>
+                    <div class="student-stats">
+                        <div class="mini-stat">
+                            <span class="mini-label">Engagement</span>
+                            <div class="progress-bar"><div class="progress-fill progress-yellow" style="width:38%"></div></div>
+                            <span class="mini-value yellow-text">38%</span>
+                        </div>
+                        <div class="mini-stat">
+                            <span class="mini-label">Alerts</span>
+                            <span class="mini-value red-text">6</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script>
+// Simple search filter
+document.getElementById('student-search').addEventListener('input', function(e) {
+    const q = e.target.value.toLowerCase();
+    document.querySelectorAll('.student-card').forEach(card => {
+        const name = card.querySelector('h4').textContent.toLowerCase();
+        card.style.display = name.includes(q) ? '' : 'none';
+    });
+});
+</script>
+
+</body>
+</html>
