@@ -7,3 +7,4 @@ flask-socketio
 scipy
 numpy
 Pillow
+lap>=0.5.12
