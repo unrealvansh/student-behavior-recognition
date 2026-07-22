@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BehaveX — Dashboard</title>
+    <meta name="description" content="AI-powered real-time student behaviour recognition dashboard.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=5">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+
+    {% include 'partials/sidebar.html' %}
+
+    <main class="main">
+
+        <header>
+            <div>
+                <h1>Student Behaviour Recognition</h1>
+                <p>AI-Powered Classroom Monitoring &bull; Real-time &bull; Automatic &bull; Intelligent</p>
+            </div>
+            <div class="profile">
+                <span id="connection-badge" class="badge badge-offline">Offline</span>
+                <button class="btn btn-outline" id="start-btn">
+                    <i class="fas fa-play"></i> Start Monitoring
+                </button>
+            </div>
+        </header>
+
+        <!-- ── 5 Behavior Cards (PPTX Slide 8) ────────────────────────── -->
+        <section class="cards">
+            <div class="card card-gray">
+                <div class="card-icon"><i class="fas fa-user gray"></i></div>
+                <h2 id="stat-sitting">0</h2>
+                <p>Sitting / Standing</p>
+                <span class="card-tag tag-gray">Attentive</span>
+            </div>
+            <div class="card card-green">
+                <div class="card-icon"><i class="fas fa-book-open green"></i></div>
+                <h2 id="stat-reading">0</h2>
+                <p>Reading / Writing</p>
+                <span class="card-tag tag-green">Engaged</span>
+            </div>
+            <div class="card card-blue">
+                <div class="card-icon"><i class="fas fa-hand-paper blue"></i></div>
+                <h2 id="stat-hand">0</h2>
+                <p>Hand Raising</p>
+                <span class="card-tag tag-blue">Participating</span>
+            </div>
+            <div class="card card-yellow">
+                <div class="card-icon"><i class="fas fa-mobile-screen-button yellow"></i></div>
+                <h2 id="stat-phone">0</h2>
+                <p>Using Mobile</p>
+                <span class="card-tag tag-yellow">Alert</span>
+            </div>
+            <div class="card card-red">
+                <div class="card-icon"><i class="fas fa-bed red"></i></div>
+                <h2 id="stat-sleeping">0</h2>
+                <p>Sleeping</p>
+                <span class="card-tag tag-red">Alert</span>
+            </div>
+        </section>
+
+        <!-- ── Middle: Live Feed + Summary ─────────────────────────────── -->
+        <section class="middle">
+            <div class="camera">
+                <h3><i class="fas fa-video"></i> Live Classroom Feed</h3>
+                <div class="camera-box" id="camera-container">
+                    <img id="live-feed" src="" alt="Live Feed" style="width:100%;height:100%;object-fit:cover;display:none;">
+                    <div id="camera-placeholder" class="camera-placeholder-content">
+                        <i class="fas fa-video" style="font-size:2.5rem;margin-bottom:12px;opacity:0.3;"></i>
+                        <p>Click <strong>"Start Monitoring"</strong> to begin AI detection</p>
+                        <small>Your server webcam (index 0) will be accessed</small>
+                    </div>
+                </div>
+            </div>
+            <div class="summary">
+                <h3><i class="fas fa-chart-pie"></i> Session Summary</h3>
+                <div class="summary-item">
+                    <span><i class="fas fa-users"></i> Total Students</span>
+                    <strong id="sum-total">0</strong>
+                </div>
+                <div class="summary-item">
+                    <span><i class="fas fa-eye"></i> Total Detections</span>
+                    <strong id="sum-detections">0</strong>
+                </div>
+                <div class="summary-item">
+                    <span><i class="fas fa-exclamation-triangle"></i> Alerts</span>
+                    <strong id="sum-alerts" class="red-text">0</strong>
+                </div>
+                <div class="summary-item">
+                    <span><i class="fas fa-microchip"></i> AI Status</span>
+                    <strong id="sum-status" class="gray-text">Idle</strong>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── Recent Detections Table ─────────────────────────────────── -->
+        <section class="table">
+            <h3><i class="fas fa-list"></i> Recent Detections</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Student</th>
+                        <th>Behaviour</th>
+                    </tr>
+                </thead>
+                <tbody id="detections-body">
+                </tbody>
+            </table>
+        </section>
+
+    </main>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
+<script>
+    if (typeof io === 'undefined') {
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js';
+        document.head.appendChild(s);
+    }
+</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=4"></script>
+
+</body>
+</html>
