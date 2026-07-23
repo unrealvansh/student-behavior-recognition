@@ -4,6 +4,19 @@ import torchvision.transforms as T
 from torchvision.models import mobilenet_v2, MobileNet_V2_Weights
 
 
+class PadToSquare(object):
+    """Pad PIL Image to a square with neutral gray background before resizing.
+    Preserves original aspect ratio of person crop without squishing body/face.
+    """
+    def __call__(self, img):
+        w, h = img.size
+        max_dim = max(w, h)
+        hp = (max_dim - w) // 2
+        vp = (max_dim - h) // 2
+        padding = (hp, vp, max_dim - w - hp, max_dim - h - vp)
+        return T.functional.pad(img, padding, fill=128)
+
+
 class BehaviorClassifier:
     def __init__(self, weights_path=None, num_classes=5):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -13,7 +26,10 @@ class BehaviorClassifier:
         self.class_names = ["HandRaising", "Mobile", "Reading", "Sitting", "Sleeping"]
 
         self.model = mobilenet_v2(weights=MobileNet_V2_Weights.DEFAULT)
-        self.model.classifier[1] = nn.Linear(self.model.classifier[1].in_features, num_classes)
+        self.model.classifier = nn.Sequential(
+            nn.Dropout(0.4),
+            nn.Linear(self.model.last_channel, num_classes),
+        )
 
         if weights_path:
             self.model.load_state_dict(torch.load(weights_path, map_location=self.device))
@@ -23,6 +39,7 @@ class BehaviorClassifier:
         # Transform expects a numpy BGR crop (from cv2)
         self.transform = T.Compose([
             T.ToPILImage(),       # numpy BGR -> PIL
+            PadToSquare(),        # Preserve aspect ratio (neutral gray padding)
             T.Resize((224, 224)),
             T.ToTensor(),
             T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
@@ -57,5 +74,5 @@ class BehaviorClassifier:
         if return_all_probs:
             all_probs = {self.class_names[i]: probs[i].item() for i in range(self.num_classes)}
             return best_class, best_conf, all_probs
-        
+
         return best_class, best_conf

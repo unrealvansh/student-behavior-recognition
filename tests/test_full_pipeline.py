@@ -21,7 +21,7 @@ print(f"Classifier: MobileNetV2 ({classifier.class_names})")
 print()
 
 # ── Load test image ──────────────────────────────────────────────
-IMAGE_PATH = r"C:\Users\Unrea\OneDrive\Desktop\project\img124.jpg"
+IMAGE_PATH = r"C:\Users\Unrea\Downloads\img29.jpg"
 img = cv2.imread(IMAGE_PATH)
 
 if img is None:

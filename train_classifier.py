@@ -1,20 +1,9 @@
 """
-MobileNetV2 Behavior Classifier Training
-==========================================
+MobileNetV2 Behavior Classifier Training — Full Fine-Tuning with PadToSquare
+=============================================================================
 Hardware:  RTX 3050 6 GB  |  i5-13420H  |  16 GB RAM
 Dataset:   data/behavior/{class_folders}/  (cropped person images)
 Classes:   Sitting, Sleeping, Mobile, Reading, HandRaising
-
-Usage:
-    python train_classifier.py
-
-The script expects this folder structure:
-    data/behavior/
-    ├── sitting/       (images)
-    ├── sleeping/      (images)
-    ├── mobile/        (images)
-    ├── reading/       (images)
-    └── hand_raising/  (images)
 
 Outputs:
     models/behavior_classifier.pth  (best model weights)
@@ -33,31 +22,45 @@ DATA_DIR = "data/behavior"
 OUTPUT_PATH = "models/behavior_classifier.pth"
 NUM_CLASSES = 5
 CLASS_NAMES = ["hand_raising", "mobile", "reading", "sitting", "sleeping"]
-# ^ sorted alphabetically — ImageFolder uses this order
 
 BATCH_SIZE = 32
-EPOCHS = 30
-PATIENCE = 8          # Early stopping patience
-LR = 0.001
+EPOCHS = 35
+PATIENCE = 5          # Abort after 5 epochs with no validation loss improvement
+LR_BACKBONE = 1e-5      # Lower learning rate for fine-tuning pre-trained backbone
+LR_HEAD = 1e-3          # Higher learning rate for new classifier head
 IMG_SIZE = 224
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
+class PadToSquare(object):
+    """Pad PIL Image to a square with neutral gray background before resizing.
+    Preserves original aspect ratio of person crop without squishing body/face.
+    """
+    def __call__(self, img):
+        w, h = img.size
+        max_dim = max(w, h)
+        hp = (max_dim - w) // 2
+        vp = (max_dim - h) // 2
+        padding = (hp, vp, max_dim - w - hp, max_dim - h - vp)
+        return transforms.functional.pad(img, padding, fill=128)
+
+
 def get_transforms():
-    """Training transforms with augmentation, val with just resize+normalize."""
+    """Enhanced training transforms with PadToSquare aspect-ratio preservation."""
     train_tfm = transforms.Compose([
-        transforms.Resize((IMG_SIZE + 32, IMG_SIZE + 32)),
-        transforms.RandomCrop(IMG_SIZE),
-        transforms.RandomHorizontalFlip(),
-        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.2),
+        PadToSquare(),
+        transforms.RandomResizedCrop(IMG_SIZE, scale=(0.8, 1.0)),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
         transforms.RandomRotation(10),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        transforms.RandomErasing(p=0.2),
+        transforms.RandomErasing(p=0.2, scale=(0.02, 0.15)),
     ])
 
     val_tfm = transforms.Compose([
+        PadToSquare(),
         transforms.Resize((IMG_SIZE, IMG_SIZE)),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -66,37 +69,25 @@ def get_transforms():
     return train_tfm, val_tfm
 
 
-def build_model():
+def build_model(num_classes):
     """MobileNetV2 with custom classifier head."""
     model = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.DEFAULT)
-
-    # Freeze early layers (first 14 out of 19 blocks)
-    for i, (name, param) in enumerate(model.features.named_parameters()):
-        if int(name.split(".")[0]) < 14:
-            param.requires_grad = False
-
-    # Replace classifier head
     model.classifier = nn.Sequential(
         nn.Dropout(0.3),
-        nn.Linear(model.last_channel, NUM_CLASSES),
+        nn.Linear(model.last_channel, num_classes),
     )
-
     return model.to(DEVICE)
-
-
-
 
 
 def train():
     print(f"Device: {DEVICE}")
     if DEVICE.type == "cuda":
         print(f"GPU: {torch.cuda.get_device_name(0)}")
-    print()
+    print(f"Mode: Two-Stage Fine-Tuning with PadToSquare ({EPOCHS} epochs)\n")
 
     # ─── Data ────────────────────────────────────────────────────
     train_tfm, val_tfm = get_transforms()
 
-    # Use one dataset to inspect classes, then create separate ones for train/val
     inspect_ds = datasets.ImageFolder(DATA_DIR)
     print(f"Classes: {inspect_ds.classes}")
     print(f"Total images: {len(inspect_ds)}")
@@ -105,54 +96,64 @@ def train():
         print(f"  {cls}: {count}")
     print()
 
-    # Split indices 80/20
-    total = len(inspect_ds)
-    train_size = int(0.8 * total)
-    val_size = total - train_size
-
-    indices = torch.randperm(total, generator=torch.Generator().manual_seed(42)).tolist()
-    train_indices = indices[:train_size]
-    val_indices = indices[train_size:]
-
-    # Create separate datasets with different transforms
+    # Create datasets and dataloaders
     train_dataset = datasets.ImageFolder(DATA_DIR, transform=train_tfm)
     val_dataset = datasets.ImageFolder(DATA_DIR, transform=val_tfm)
 
-    train_set = torch.utils.data.Subset(train_dataset, train_indices)
-    val_set = torch.utils.data.Subset(val_dataset, val_indices)
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=0, pin_memory=True)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0, pin_memory=True)
 
-    # Weighted sampler for class imbalance — built from TRAIN indices only
-    train_targets = [inspect_ds.targets[i] for i in train_indices]
+    print(f"Train samples: {len(train_dataset)} | Val samples: {len(val_dataset)}\n")
+
+    # Calculate class weights for handling imbalance
     class_counts = [0] * NUM_CLASSES
-    for t in train_targets:
-        class_counts[t] += 1
-    class_weights = [1.0 / c if c > 0 else 0 for c in class_counts]
-    sample_weights = [class_weights[t] for t in train_targets]
-    sampler = WeightedRandomSampler(sample_weights, len(sample_weights), replacement=True)
+    for _, label in train_dataset.samples:
+        class_counts[label] += 1
 
-    train_loader = DataLoader(
-        train_set, batch_size=BATCH_SIZE, sampler=sampler,
-        num_workers=2, pin_memory=True,
-    )
-    val_loader = DataLoader(
-        val_set, batch_size=BATCH_SIZE, shuffle=False,
-        num_workers=2, pin_memory=True,
-    )
+    class_weights = 1. / torch.tensor(class_counts, dtype=torch.float)
+    class_weights = class_weights / class_weights.sum() # Normalize
+    class_weights = class_weights.to(DEVICE)
+    print(f"Applied class weights: {class_weights.cpu().numpy().round(3)}")
 
-    print(f"Train: {train_size} | Val: {val_size}\n")
 
-    # ─── Model ───────────────────────────────────────────────────
-    model = build_model()
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.AdamW(
-        filter(lambda p: p.requires_grad, model.parameters()),
-        lr=LR, weight_decay=1e-4,
-    )
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS)
+    # ─── Stage 1: Train Classifier Head ──────────────────────────
+    print("--- Stage 1: Training Classifier Head (Backbone Frozen) ---")
+    model = build_model(NUM_CLASSES)
 
-    # ─── Training Loop ───────────────────────────────────────────
-    best_acc = 0.0
-    patience_counter = 0
+    # Freeze backbone
+    for param in model.features.parameters():
+        param.requires_grad = False
+
+    criterion = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=0.1)
+    optimizer = optim.AdamW(model.classifier.parameters(), lr=LR_HEAD, weight_decay=1e-4)
+
+    for epoch in range(5): # Train head for 5 epochs
+        model.train()
+        for inputs, labels in train_loader:
+            inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+        print(f"Epoch {epoch+1:2d}/5: Head training complete.")
+
+    # ─── Stage 2: Full Fine-Tuning ──────────────────────────────
+    print("\n--- Stage 2: Full Fine-Tuning (Backbone Unfrozen) ---")
+
+    # Unfreeze backbone
+    for param in model.features.parameters():
+        param.requires_grad = True
+
+    optimizer = optim.AdamW([
+        {'params': model.features.parameters(), 'lr': LR_BACKBONE},
+        {'params': model.classifier.parameters(), 'lr': LR_HEAD},
+    ], weight_decay=1e-4)
+
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS, eta_min=1e-6)
+
+    best_loss = float('inf')
+    epochs_no_improve = 0
 
     for epoch in range(EPOCHS):
         # Train
@@ -163,7 +164,6 @@ def train():
 
         for inputs, labels in train_loader:
             inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
-
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, labels)
@@ -200,24 +200,26 @@ def train():
 
         scheduler.step()
 
-        print(f"Epoch {epoch+1:3d}/{EPOCHS} | "
-              f"Train Loss: {train_loss:.4f}  Acc: {train_acc:.1%} | "
-              f"Val Loss: {val_loss:.4f}  Acc: {val_acc:.1%}")
-
-        # Save best model
-        if val_acc > best_acc:
-            best_acc = val_acc
-            patience_counter = 0
+        saved_msg = ""
+        if val_loss < best_loss:
+            best_loss = val_loss
             os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
             torch.save(model.state_dict(), OUTPUT_PATH)
-            print(f"  >> Saved best model (val acc: {val_acc:.1%})")
+            epochs_no_improve = 0
+            saved_msg = f"  >> Saved best model (val loss: {val_loss:.4f}, acc: {val_acc:.1%})"
         else:
-            patience_counter += 1
-            if patience_counter >= PATIENCE:
-                print(f"\n[STOP] Early stopping at epoch {epoch+1} (no improvement for {PATIENCE} epochs)")
-                break
+            epochs_no_improve += 1
 
-    print(f"\nTraining complete! Best val accuracy: {best_acc:.1%}")
+        print(f"Epoch {epoch+1:2d}/{EPOCHS:2d} | "
+              f"Train Loss: {train_loss:.4f} Acc: {train_acc:.1%} | "
+              f"Val Loss: {val_loss:.4f} Acc: {val_acc:.1%}{saved_msg}")
+
+        if epochs_no_improve >= PATIENCE:
+            print(f"\nEarly stopping triggered after {PATIENCE} epochs with no improvement.")
+            break
+
+    print(f"\nTraining complete!")
+    print(f"Best Val Loss: {best_loss:.4f}")
     print(f"Model saved to: {OUTPUT_PATH}")
 
 
