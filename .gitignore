@@ -267,3 +267,5 @@ models/*.pt
 # OS metadata
 .DS_Store
 *.DS_Store
+student-behavior-recognition/.claude/autoharness
+student-behavior-recognition/.claude/requests
