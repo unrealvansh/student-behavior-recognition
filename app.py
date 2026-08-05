@@ -64,6 +64,8 @@ def generate_frames():
         return
 
     camera = cv2.VideoCapture(0)
+    camera.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+    camera.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
     if not camera.isOpened():
         logger.error("Could not open webcam (index 0)")
         socketio.emit('stream_error', {'message': 'Could not open webcam. Check that no other app is using it.'})
@@ -94,7 +96,7 @@ def generate_frames():
 
         # ── Encode annotated frame to JPEG → base64 ──────────────────────
         _, buffer = cv2.imencode('.jpg', annotated_frame,
-                                 [cv2.IMWRITE_JPEG_QUALITY, 75])
+                                 [cv2.IMWRITE_JPEG_QUALITY, 55])
         frame_b64 = base64.b64encode(buffer).decode('utf-8')
 
         # ── Build the payload for the dashboard ───────────────────────────
