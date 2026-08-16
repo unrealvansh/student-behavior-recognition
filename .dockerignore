@@ -1,0 +1,10 @@
+.git
+__pycache__
+*.pyc
+.vscode
+.claude
+output/
+presentation_crops/
+data/
+autoharness/
+tests/
