@@ -9,11 +9,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libxcb1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy and install Python dependencies
+# Install headless OpenCV FIRST, then remaining deps.
+# ultralytics depends on opencv-python, but pip will see cv2 is
+# already satisfied by the headless variant and skip it.
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt && \
-    pip uninstall -y opencv-python 2>/dev/null; \
-    pip install --no-cache-dir opencv-python-headless
+RUN pip install --no-cache-dir opencv-python-headless && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY . .
